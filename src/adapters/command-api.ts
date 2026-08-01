@@ -27,7 +27,7 @@ type InternalApp = {
 
 const natural = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
 
-export function createCommandAdapter(app: unknown, isMac = navigator.platform.includes('Mac')): CommandAdapter | null {
+export function createCommandAdapter(app: unknown, isMac: boolean): CommandAdapter | null {
 	const internal = app as InternalApp;
 	const commands = internal.commands?.commands;
 	const execute = internal.commands?.executeCommandById;

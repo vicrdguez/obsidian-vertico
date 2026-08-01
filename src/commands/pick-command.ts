@@ -5,7 +5,7 @@ const unavailable = 'Vertico could not access Obsidian commands. The Command Sou
 
 export async function pickCommand(
 	adapter: CommandAdapter | null,
-	picker: PickerHost,
+	picker: Pick<PickerHost, 'pick' | 'close'>,
 	notify: (message: string) => void,
 ): Promise<void> {
 	if (!adapter) {
