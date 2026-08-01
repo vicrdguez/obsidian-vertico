@@ -21,6 +21,7 @@ class FakeElement extends FakeTarget {
 	textContent = '';
 	value = '';
 	type = '';
+	ariaLabel = '';
 	constructor(readonly tagName: string) { super(); }
 	append(...elements: FakeElement[]) { for (const element of elements) { element.parentElement = this; this.children.push(element); } }
 	replaceChildren(...elements: FakeElement[]) { for (const child of this.children) child.parentElement = null; this.children = []; this.append(...elements); }
@@ -81,6 +82,13 @@ const setup = () => {
 	};
 };
 const key = (window: FakeWindow, value: string) => window.dispatch('keydown', { key: value, preventDefault() {} });
+
+test('query input has an accessible name', () => {
+	const { document, picker } = setup();
+	void picker.pick({ sourceName: 'Commands', candidates: [] });
+	assert.equal(document.querySelector('input')?.ariaLabel, 'Commands query');
+	picker.close();
+});
 
 test('ordered-subsequence query ranks an Active Candidate and updates Picker Status', () => {
 	const { document, picker } = setup();

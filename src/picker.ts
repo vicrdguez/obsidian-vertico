@@ -33,6 +33,7 @@ export class PickerHost {
 			const input = this.document.createElement('input');
 			input.type = 'text';
 			input.className = 'vertico-query';
+			input.ariaLabel = `${request.sourceName} query`;
 			const list = this.document.createElement('div');
 			list.className = 'vertico-candidates';
 			const status = this.document.createElement('div');
