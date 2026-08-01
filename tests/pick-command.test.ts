@@ -49,6 +49,16 @@ test('incompatible command registry reports the Source unavailable without openi
 	assert.deepEqual(notices, ['Vertico could not access Obsidian commands. The Command Source is unavailable.']);
 });
 
+test('cancelled command Picker executes no command', async () => {
+	const executed: string[] = [];
+	await pickCommand(
+		adapter(() => ['Open'], (id) => (executed.push(id), true)),
+		{ pick: async () => null },
+		() => {},
+	);
+	assert.deepEqual(executed, []);
+});
+
 test('selected command executes only after the Picker resolves following teardown', async () => {
 	let open = true;
 	const events: string[] = [];
