@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import type { CommandAdapter } from '../src/adapters/command-api';
+import { createCommandAdapter, type CommandAdapter } from '../src/adapters/command-api';
 import { pickCommand } from '../src/commands/pick-command';
 import type { PickerRequest } from '../src/picker';
 
@@ -31,6 +31,20 @@ test('unsupported Command Source reports a Notice without opening a Picker', asy
 	const notices: string[] = [];
 	let opened = false;
 	await pickCommand(null, { pick: async () => (opened = true, null) }, (message) => notices.push(message));
+	assert.equal(opened, false);
+	assert.deepEqual(notices, ['Vertico could not access Obsidian commands. The Command Source is unavailable.']);
+});
+
+test('incompatible command registry reports the Source unavailable without opening a Picker', async () => {
+	const source = createCommandAdapter({
+		commands: { commands: { broken: { id: 'broken' } }, executeCommandById: () => true },
+		hotkeyManager: { getHotkeys: () => [] },
+	}, false);
+	const notices: string[] = [];
+	let opened = false;
+
+	await pickCommand(source, { pick: async () => (opened = true, null) }, (message) => notices.push(message));
+
 	assert.equal(opened, false);
 	assert.deepEqual(notices, ['Vertico could not access Obsidian commands. The Command Source is unavailable.']);
 });

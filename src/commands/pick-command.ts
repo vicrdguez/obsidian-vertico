@@ -13,7 +13,13 @@ export async function pickCommand(
 		return;
 	}
 
-	const commands = adapter.snapshotAvailable();
+	let commands;
+	try {
+		commands = adapter.snapshotAvailable();
+	} catch {
+		notify(unavailable);
+		return;
+	}
 	const selected = await picker.pick({
 		sourceName: 'Commands',
 		candidates: commands.map((command) => ({
