@@ -35,13 +35,13 @@ Replace the sample plugin with the first complete Vertico tracer: **Pick command
 - Mobile Obsidian
 
 ## Definition of Done
-- [ ] Vertico loads as a desktop-only plugin with no sample-plugin behavior.
-- [ ] Opening **Pick command** snapshots only currently Available Commands in deterministic Source Order.
-- [ ] When the undocumented command API is unavailable, **Pick command** shows a clear Notice and does not open a Picker.
-- [ ] The command Picker starts empty, narrows Candidate Names with ordered-subsequence matching, and exposes an Active Candidate and Picker Status.
-- [ ] A query with no matches shows **No matches**, status `Commands 0/0`, and Enter performs no action.
-- [ ] Up and Down change the Active Candidate without moving beyond the first or last match.
-- [ ] Enter tears down the Picker before executing the selected command; execution failures produce a Notice without reopening it.
-- [ ] Escape tears down the Picker without executing a command.
-- [ ] Opening another Picker cancels and removes the existing Picker first.
-- [ ] Behavior tests, `npm run build`, and `npm run lint` pass.
+- [x] Vertico loads as a desktop-only plugin with no sample-plugin behavior.
+- [x] Opening **Pick command** snapshots only currently Available Commands in deterministic Source Order.
+- [x] When the undocumented command API is unavailable, **Pick command** shows a clear Notice and does not open a Picker.
+- [x] The command Picker starts empty, narrows Candidate Names with ordered-subsequence matching, and exposes an Active Candidate and Picker Status.
+- [x] A query with no matches shows **No matches**, status `Commands 0/0`, and Enter performs no action.
+- [x] Up and Down change the Active Candidate without moving beyond the first or last match.
+- [x] Enter tears down the Picker before executing the selected command; execution failures produce a Notice without reopening it.
+- [x] Escape tears down the Picker without executing a command.
+- [x] Opening another Picker cancels and removes the existing Picker first.
+- [x] Behavior tests, `npm run build`, and `npm run lint` pass.
