@@ -31,8 +31,9 @@ export function createCommandAdapter(app: unknown, isMac: boolean): CommandAdapt
 	const internal = app as InternalApp;
 	const commands = internal.commands?.commands;
 	const execute = internal.commands?.executeCommandById;
-	const getHotkeys = internal.hotkeyManager?.getHotkeys;
-	if (!commands || typeof execute !== 'function' || typeof getHotkeys !== 'function') return null;
+	const hotkeyManager = internal.hotkeyManager;
+	const getHotkeys = hotkeyManager?.getHotkeys;
+	if (!commands || typeof execute !== 'function' || !hotkeyManager || typeof getHotkeys !== 'function') return null;
 
 	return {
 		snapshotAvailable: () => Object.values(commands)
@@ -40,18 +41,22 @@ export function createCommandAdapter(app: unknown, isMac: boolean): CommandAdapt
 			.map((command) => ({
 				id: command.id,
 				name: command.name,
-				hotkeys: getHotkeys(command.id).map((hotkey) => formatHotkey(hotkey, isMac)).join(', '),
+				hotkeys: getHotkeys.call(hotkeyManager, command.id).map((hotkey) => formatHotkey(hotkey, isMac)).join(', '),
 			}))
 			.sort(compareCommands),
-		execute: (id) => execute(id),
+		execute: (id) => execute.call(internal.commands, id),
 	};
 }
 
 function compareCommands(left: CommandRecord, right: CommandRecord): number {
 	return natural.compare(left.name, right.name)
-		|| left.name.localeCompare(right.name)
 		|| natural.compare(left.id, right.id)
-		|| left.id.localeCompare(right.id);
+		|| compareRaw(left.name, right.name)
+		|| compareRaw(left.id, right.id);
+}
+
+function compareRaw(left: string, right: string): number {
+	return left < right ? -1 : left > right ? 1 : 0;
 }
 
 function formatHotkey(hotkey: Hotkey, isMac: boolean): string {

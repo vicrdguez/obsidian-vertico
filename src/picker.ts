@@ -1,4 +1,5 @@
 import { Fzf } from 'fzf';
+import type { Component } from 'obsidian';
 
 export type Candidate = Readonly<{
 	key: string;
@@ -16,11 +17,17 @@ type Session = { finish(value: string | null): void };
 export class PickerHost {
 	private session: Session | null = null;
 
-	constructor(private readonly document: Document, private readonly window: Window) {}
+	constructor(
+		private readonly document: Document,
+		private readonly window: Window,
+		private readonly createComponent: () => Component,
+	) {}
 
 	pick(request: PickerRequest): Promise<string | null> {
 		this.close();
 		return new Promise((resolve) => {
+			const component = this.createComponent();
+			component.load();
 			const surface = this.document.createElement('div');
 			surface.className = 'vertico-picker';
 			const input = this.document.createElement('input');
@@ -76,16 +83,15 @@ export class PickerHost {
 				else if (event.key === 'ArrowDown' && matches.length > 0) { active = Math.min(matches.length - 1, active + 1); render(); }
 			};
 			const finish = (value: string | null) => {
-				input.removeEventListener('input', onInput);
-				this.window.removeEventListener('keydown', onKeydown);
+				component.unload();
 				surface.remove();
 				this.session = null;
 				resolve(value);
 			};
 
 			this.session = { finish };
-			input.addEventListener('input', onInput);
-			this.window.addEventListener('keydown', onKeydown);
+			component.registerDomEvent(input, 'input', onInput);
+			component.registerDomEvent(this.window, 'keydown', onKeydown);
 			render();
 			input.focus();
 		});

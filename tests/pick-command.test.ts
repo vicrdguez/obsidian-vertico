@@ -14,7 +14,7 @@ function adapter(names: () => string[], execute = (_id: string) => true): Comman
 test('each command Picker opening rebuilds its Candidate snapshot', async () => {
 	let names = ['Always'];
 	const requests: PickerRequest[] = [];
-	const picker = { pick: async (request: PickerRequest) => (requests.push(request), null), close() {} };
+	const picker = { pick: async (request: PickerRequest) => (requests.push(request), null) };
 	const source = adapter(() => names);
 
 	await pickCommand(source, picker, () => {});
@@ -30,7 +30,7 @@ test('each command Picker opening rebuilds its Candidate snapshot', async () => 
 test('unsupported Command Source reports a Notice without opening a Picker', async () => {
 	const notices: string[] = [];
 	let opened = false;
-	await pickCommand(null, { pick: async () => (opened = true, null), close() {} }, (message) => notices.push(message));
+	await pickCommand(null, { pick: async () => (opened = true, null) }, (message) => notices.push(message));
 	assert.equal(opened, false);
 	assert.deepEqual(notices, ['Vertico could not access Obsidian commands. The Command Source is unavailable.']);
 });
@@ -38,7 +38,7 @@ test('unsupported Command Source reports a Notice without opening a Picker', asy
 test('selected command executes only after the Picker resolves following teardown', async () => {
 	let open = true;
 	const events: string[] = [];
-	const picker = { pick: async () => (open = false, events.push('resolved'), 'Open'), close() {} };
+	const picker = { pick: async () => (open = false, events.push('resolved'), 'Open') };
 	await pickCommand(adapter(() => ['Open'], (id) => (assert.equal(open, false), events.push(`executed:${id}`), true)), picker, () => {});
 	assert.deepEqual(events, ['resolved', 'executed:Open']);
 });
@@ -46,7 +46,7 @@ test('selected command executes only after the Picker resolves following teardow
 test('command execution failure reports a Notice without reopening the Picker', async () => {
 	const notices: string[] = [];
 	let openings = 0;
-	const picker = { pick: async () => (openings++, 'Broken'), close() {} };
+	const picker = { pick: async () => (openings++, 'Broken') };
 	await pickCommand(adapter(() => ['Broken'], () => false), picker, (message) => notices.push(message));
 	assert.equal(openings, 1);
 	assert.deepEqual(notices, ['Could not execute command “Broken”.']);

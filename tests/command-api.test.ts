@@ -12,16 +12,25 @@ test('snapshot includes only Available Commands in deterministic Source Order', 
 	const executed: string[] = [];
 	const app = {
 		commands: {
+			marker: 'commands',
 			commands: {
 				z: command('z', 'Open 10'),
 				b: command('b', 'open 2', true),
 				a: command('a', 'open 2', true),
 				hidden: command('hidden', 'Hidden', false),
 			},
-			executeCommandById: (id: string) => (executed.push(id), true),
+			executeCommandById(this: { marker: string }, id: string) {
+				assert.equal(this.marker, 'commands');
+				executed.push(id);
+				return true;
+			},
 		},
 		hotkeyManager: {
-			getHotkeys: (id: string) => id === 'a' ? [{ modifiers: ['Mod', 'Shift'], key: 'p' }] : [],
+			marker: 'hotkeys',
+			getHotkeys(this: { marker: string }, id: string) {
+				assert.equal(this.marker, 'hotkeys');
+				return id === 'a' ? [{ modifiers: ['Mod', 'Shift'], key: 'p' }] : [];
+			},
 		},
 	};
 
@@ -34,6 +43,20 @@ test('snapshot includes only Available Commands in deterministic Source Order', 
 	]);
 	assert.equal(adapter.execute('a'), true);
 	assert.deepEqual(executed, ['a']);
+});
+
+test('case-only Candidate Name ties are ordered by command ID before raw strings', () => {
+	const app = {
+		commands: {
+			commands: {
+				z: command('z', 'alpha'),
+				a: command('a', 'Alpha'),
+			},
+			executeCommandById: () => true,
+		},
+		hotkeyManager: { getHotkeys: () => [] },
+	};
+	assert.deepEqual(createCommandAdapter(app, false)?.snapshotAvailable().map(({ id }) => id), ['a', 'z']);
 });
 
 test('unsupported command internals return no adapter', () => {

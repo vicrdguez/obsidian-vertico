@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import type { Component } from 'obsidian';
 import { PickerHost, type Candidate } from '../src/picker';
 
 class FakeTarget {
@@ -43,6 +44,19 @@ class FakeElement extends FakeTarget {
 	}
 }
 
+class FakeComponent {
+	private registrations: Array<[FakeTarget, string, (event: any) => void]> = [];
+	load() {}
+	registerDomEvent(target: FakeTarget, type: string, listener: (event: any) => void) {
+		target.addEventListener(type, listener);
+		this.registrations.push([target, type, listener]);
+	}
+	unload() {
+		for (const [target, type, listener] of this.registrations) target.removeEventListener(type, listener);
+		this.registrations = [];
+	}
+}
+
 class FakeDocument {
 	body = new FakeElement('BODY');
 	createElement(tag: string) { return new FakeElement(tag.toUpperCase()); }
@@ -56,7 +70,15 @@ const candidate = (key: string, name = key): Candidate => ({ key, name, fields: 
 const setup = () => {
 	const document = new FakeDocument();
 	const window = new FakeWindow();
-	return { document, window, picker: new PickerHost(document as unknown as Document, window as unknown as Window) };
+	return {
+		document,
+		window,
+		picker: new PickerHost(
+			document as unknown as Document,
+			window as unknown as Window,
+			() => new FakeComponent() as unknown as Component,
+		),
+	};
 };
 const key = (window: FakeWindow, value: string) => window.dispatch('keydown', { key: value, preventDefault() {} });
 

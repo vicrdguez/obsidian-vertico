@@ -7,7 +7,6 @@ export default defineConfig(
 		'node_modules',
 		'dist',
 		'esbuild.config.mjs',
-		'test-runner.mjs',
 		'version-bump.mjs',
 		'versions.json',
 		'main.js',
@@ -22,7 +21,7 @@ export default defineConfig(
 			},
 			parserOptions: {
 				projectService: {
-					allowDefaultProject: ['eslint.config.mts', 'manifest.json'],
+					allowDefaultProject: ['eslint.config.mts', 'manifest.json', 'test-runner.mjs'],
 				},
 				tsconfigRootDir: import.meta.dirname,
 				extraFileExtensions: ['.json'],
