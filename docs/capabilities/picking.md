@@ -1,0 +1,89 @@
+# Picking
+
+A user can open the Picker for one Source, narrow its Candidates, and select one to perform the Source's Selection Action.
+
+## Behaviors
+- At most one Picker is open globally; invoking one closes any existing Picker and opens the new one in the active Obsidian window
+- The Picker appears as a temporary bottom-anchored overlay that captures keyboard input without changing or dimming the visible workspace layout
+- The Picker Surface spans the central workspace by default; users may instead make it span the full active Obsidian window
+- Clicking outside the Picker cancels it while allowing the click to reach the workspace
+- Hovering makes a Candidate active; a single click selects it
+- The Active Candidate uses a theme selection background and narrow accent-colored leading border
+- The query uses the ARIA combobox/listbox pattern with `aria-activedescendant`, accessible Candidate Names, and live result-count announcements
+- The query row shows Picker Status containing the Source name and Active Candidate position/matching count, such as `Notes 3/247`
+- When no Candidates match, a non-selectable **No matches** row and `0/0` status appear; Enter does nothing
+- The query input appears above Candidates, which are ordered from best to worst
+- Candidate rows never wrap; overflowing fixed and flexible fields truncate with ellipses
+- The Candidate list uses fixed-height virtual scrolling, retains every ranked match, and keeps the Active Candidate in view
+- The Picker shows at most 10 Candidate rows by default; users may configure 1–50, the Surface shrinks for fewer matches, and viewport capacity remains the final limit
+- Stable plugin commands `pick-note`, `pick-backlink`, and `pick-command` open the separate note, backlink, and command Sources without default hotkeys
+- Each Source has its own Display Template, defined with literal text and named field placeholders such as `${tags width=20 style=tag searchable=false}`
+- A Display Template controls each Candidate Field's order, conditional prefixes and suffixes, fixed-width columns, truncation, left or right alignment, searchability, and visual style
+- Template literals and Candidate Field values render strictly as text; templates cannot render Markdown or HTML
+- Templates use backslash escaping for literal `${`, quotes inside modifiers, and literal backslashes
+- A field's `prefix` and `suffix` render only when that field has a non-empty value
+- Templates can assign the theme-aware `primary`, `annotation`, `tag`, `property`, `count`, and `hotkey` Field Styles, which CSS snippets may override
+- Default styles use theme variables: normal medium-weight primary text, muted annotations, purple tags, blue properties, green tabular counts, and accent-colored hotkeys
+- Without `style=`, `name`, `tags`, `backlinkCount`, `hotkeys`, and `property.*` receive their corresponding semantic styles; other fields use `annotation`
+- Fixed-width fields reserve their width and truncate overflowing values with an ellipsis
+- A template may contain at most one `width=*` field, which fills remaining space and shrinks with an ellipsis
+- Displayed Candidate Fields, including Annotations, participate in matching by default and may be marked display-only; template literal text never participates
+- A query is split on whitespace into positive, order-independent Query Components with no reserved operator syntax
+- A Candidate remains only when every Query Component fuzzy-matches at least one searchable field; different components may match different fields
+- Fuzzy matching uses ordered character subsequences, favoring contiguous, word-boundary, and earlier matches, with no minimum score cutoff
+- Smart Case applies per Query Component: lowercase is case-insensitive, while uppercase makes that component case-sensitive
+- Matching ignores Unicode diacritics where normalization permits while preserving original text for display and highlighting
+- Each Query Component's best `name` match receives a 10% score advantage over Annotation matches
+- Each Candidate's Match Score is the sum of every Query Component's best field-match score
+- Only the best field match chosen for each Query Component receives Match Highlights, using accent-colored bold text
+- The Active Candidate follows the highest-ranked match until the user navigates manually; later query changes preserve that deliberate choice while it still matches, otherwise the new highest-ranked match becomes active
+- Users navigate with Up/Down, Page Up/Page Down, Home/End, or Emacs-style Ctrl+P/Ctrl+N; navigation stops at the first and last Candidate
+- Enter selects, Escape cancels, and Tab keeps focus in the query input without another action
+- Escape restores the previously focused element; outside-click cancellation leaves focus on the clicked target
+- Built-in Picker commands always start with an empty query
+- Before a query is entered, and whenever Match Scores tie, the Picker preserves deterministic Source Order
+- Built-in Sources sort naturally by `name`, then by path or command ID
+- The note Source builds its Candidate snapshot lazily, caches it, and rebuilds before the next opening after relevant vault or metadata changes
+- An open Picker keeps its Candidate snapshot stable; Selection Actions validate stale targets before acting
+- The note Source includes Markdown files only
+- Note and Backlink Candidates expose curated note metadata plus arbitrary frontmatter fields under the `property` namespace
+- The default note Source template shows `tags`, `name`, `filename`, `folder`, and `backlinkCount` in that order, with `name` taking remaining width
+- The note Source includes one Canonical Candidate per note and one Alias Candidate per note alias
+- Every Source assigns each Candidate a non-empty `name`, such as a note filename, note alias, or command name
+- A Display Template may omit `name` visually, but it remains the Candidate's accessible identity
+- A Canonical Candidate has its filename without `.md` in `name` and an empty `filename`
+- Alias Candidate names are trimmed; empty, exact duplicate, and filename-identical aliases are omitted while case-only and diacritic differences remain distinct
+- An Alias Candidate has its alias in `name` and its note's filename without `.md` in `filename`
+- A Backlink Candidate has its linking note's filename without `.md` in `name`; aliases remain accessible through the `property` namespace rather than creating duplicate Candidates
+- There is no curated `aliases` field; templates use `${property.aliases}` or `${property.alias}` directly
+- `${backlinkCount}` is the number of distinct notes linking to the Candidate's underlying note
+- `${tags}` combines inline and frontmatter tags, normalizes `#` prefixes, deduplicates, naturally sorts, and joins them with spaces
+- `${path}` is the vault-relative path including `.md`; `${folder}` is the parent path without a trailing slash or empty at the vault root
+- Frontmatter titles remain available as `${property.title}`
+- `property.` performs exact top-level key lookup; dots in a key do not traverse nested objects
+- Property fields keep strings, stringify numbers and booleans, join scalar lists with `, `, and render null, missing, object, or nested collection values as empty
+- A Display Template using an unsupported or duplicate field is rejected; `${property.someKey}` remains valid even when no current Candidate has that property
+- Settings provide each Source a template text area with live validation, a representative synthetic Candidate preview, and **Reset to default**; only valid templates become active
+- Selecting closes the Picker before its Selection Action runs; failures produce a Notice without reopening it
+- Selecting a Note or Backlink Candidate opens its note in the current workspace leaf, following Obsidian's normal handling for pinned leaves
+- **Pick backlink** is available only when a Markdown note is active; a note with zero backlinks opens the normal **No matches** state
+- The default backlink Source template shows `tags`, `name`, `folder`, and `backlinkCount` in that order, with `name` taking remaining width
+- Each distinct note with any resolved internal reference to the current note appears as one Backlink Candidate, regardless of reference type or occurrence count
+- The command Source rebuilds whenever it opens and includes only commands currently executable in the workspace context
+- Command Candidates expose `name`, `id`, and `hotkeys`; the default command Source template shows them in that order, with `name` taking remaining width
+- Hotkeys use platform-readable text, join multiple shortcuts with `, `, and are empty when unassigned
+- Selecting an Obsidian command executes it
+- If Obsidian's undocumented command API is unavailable, the command Source is disabled with a clear notice
+
+## Out of scope
+- Mobile Obsidian
+- Mixed-Source result lists
+- Public Source APIs and end-user-defined Sources
+- Individual backlink occurrences
+- Alternate or user-configurable Selection Actions
+- Typo-tolerant, hybrid, or user-configurable matching strategies
+- Raw-query actions and note creation
+- Exclusion, quoted-literal, exact, prefix, and suffix query operators
+- Sources for images, PDFs, canvases, bases, and other non-Markdown vault files
+- Note previews while navigating Candidates
+- Query history and restored initial queries
