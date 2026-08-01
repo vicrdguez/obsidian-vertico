@@ -8,7 +8,7 @@ const outdir = await mkdtemp(path.join(tmpdir(), 'vertico-tests-'));
 try {
 	const entryPoints = [];
 	for await (const file of glob('tests/**/*.test.ts')) entryPoints.push(file);
-	await build({ entryPoints, outdir, bundle: true, platform: 'node', format: 'esm', packages: 'external' });
+	await build({ entryPoints, outdir, bundle: true, platform: 'node', format: 'esm' });
 	const tests = (await readdir(outdir)).map((file) => path.join(outdir, file));
 	const result = spawnSync(process.execPath, ['--test', ...tests], { stdio: 'inherit' });
 	process.exitCode = result.status ?? 1;
